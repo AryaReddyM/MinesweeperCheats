@@ -1,11 +1,14 @@
 #include <iostream>
 #include <Windows.h>
 #include <vector>
+#include <map>
 
+/////////////// Function Declarations ///////////////
 void PressKey(WORD Key);
 void Click();
     
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
+    /////////////// Windows Initialization ///////////////
     SetProcessDPIAware();
 
     /*AllocConsole();
@@ -15,6 +18,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     freopen_s(&fp, "CONOUT$", "w", stdout);
     freopen_s(&fp, "CONOUT$", "w", stderr);*/
 
+    /////////////// Variable Initialization ///////////////
     POINT FirstBoxPos = { 643, 412 };
     int SquareLength = 67;
     std::vector<int> SideLength = { 9, 8 };
@@ -28,17 +32,21 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     bool bQuit = false;
 
+    /////////////// Run Once ///////////////
     Sleep(1000);
 
     SetCursorPos(CursorPos.x, CursorPos.y);
 
+    /////////////// Game Loop ///////////////
     while (true) {
+        // Checks if ESCAPE is pressed, exits if true
         if (GetAsyncKeyState(VK_ESCAPE)) {
             std::cout << "Spacebar pressed. Exiting." << std::endl;
             bQuit = true;
             break;
         }
 
+        // Debug: Prints cursor location and color
         GetCursorPos(&CursorPos);
         std::cout << "{" << CursorPos.x << ", " << CursorPos.y << "} \n";
 
@@ -52,25 +60,30 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
             << ", G: " << static_cast<int>(green)
             << ", B: " << static_cast<int>(blue) << std::endl;
 
+        // Loops through all of the squares
         for (int i = 0; i < SideLength[0] * SideLength[1]; i++) {
             CurrentEndColor = GetPixel(Context, EndPos.x, EndPos.y);
 
-            if (i % SideLength[0] == 0 && i != 0) {
+            if (i % SideLength[0] == 0 && i != 0 && i != 1) {
                 CursorPos.y += SquareLength;
                 CursorPos.x = FirstBoxPos.x;
             }
 
             CursorPos.x += SquareLength;
 
-            Click();
             SetCursorPos(CursorPos.x, CursorPos.y);
+            Click();
 
             if (CurrentEndColor == EndColor) {
                 std::cout << "Color \n";
                 PressKey(VK_SPACE);
                 i = 0;
                 CursorPos = FirstBoxPos;
-                Sleep(200);
+
+                Sleep(500);
+
+                SetCursorPos(CursorPos.x, CursorPos.y);
+                Click();
             }
 
             if (GetAsyncKeyState(VK_ESCAPE)) {
@@ -79,7 +92,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
                 break;
             }
              
-            Sleep(1000);
+            Sleep(100);
         }
           
         bQuit = true;
@@ -87,11 +100,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         if (bQuit) break;
     }    
 
+    /////////////// Wrapping Up Before Close ///////////////
     DeleteDC(Context);
     ReleaseDC(NULL, Context);
     return 0;
 }
 
+/////////////// Function Definitions ///////////////
 void Click() {
     INPUT inputs[2] = {};
 
