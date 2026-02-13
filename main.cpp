@@ -15,9 +15,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     freopen_s(&fp, "CONOUT$", "w", stdout);
     freopen_s(&fp, "CONOUT$", "w", stderr);*/
 
-    POINT FirstBoxPos = { 562, 356 };
-    int SquareLength = 45;
-    std::vector<int> SideLength = { 17, 14 };
+    POINT FirstBoxPos = { 643, 412 };
+    int SquareLength = 67;
+    std::vector<int> SideLength = { 9, 8 };
 
     POINT CursorPos = FirstBoxPos;
 
@@ -62,15 +62,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
             CursorPos.x += SquareLength;
 
-            SetCursorPos(CursorPos.x, CursorPos.y);
             Click();
+            SetCursorPos(CursorPos.x, CursorPos.y);
 
             if (CurrentEndColor == EndColor) {
                 std::cout << "Color \n";
                 PressKey(VK_SPACE);
                 i = 0;
                 CursorPos = FirstBoxPos;
-                Sleep(20);
+                Sleep(200);
             }
 
             if (GetAsyncKeyState(VK_ESCAPE)) {
@@ -79,7 +79,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
                 break;
             }
              
-            Sleep(100);
+            Sleep(1000);
         }
           
         bQuit = true;
