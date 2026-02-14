@@ -1,11 +1,13 @@
 #include <iostream>
 #include <Windows.h>
 #include <vector>
-#include <map>
+#include <set>
+#include "RandomNumGen.h"
 
 /////////////// Function Declarations ///////////////
 void PressKey(WORD Key);
-void Click();
+void LeftClick();
+void RightClick();
     
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
     /////////////// Windows Initialization ///////////////
@@ -21,7 +23,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     /////////////// Variable Initialization ///////////////
     POINT FirstBoxPos = { 643, 412 };
     int SquareLength = 67;
-    std::vector<int> SideLength = { 9, 8 };
+    std::vector<int> SideLength = { 9, 7 };
 
     POINT CursorPos = FirstBoxPos;
 
@@ -31,6 +33,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     HDC Context = GetDC(NULL);
 
     bool bQuit = false;
+
+    std::set<std::vector<int>> TakenPos;
+
+    COLORREF LightGreen = RGB(191, 225, 125);
+    COLORREF DarkGreen = RGB(185, 221, 119);
 
     /////////////// Run Once ///////////////
     Sleep(1000);
@@ -47,7 +54,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         }
 
         // Debug: Prints cursor location and color
-        GetCursorPos(&CursorPos);
+        /*GetCursorPos(&CursorPos);
         std::cout << "{" << CursorPos.x << ", " << CursorPos.y << "} \n";
 
         COLORREF Pos = GetPixel(Context, CursorPos.x, CursorPos.y);
@@ -58,44 +65,56 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
         std::cout << "COLORREF (RGB): R: " << static_cast<int>(red)
             << ", G: " << static_cast<int>(green)
-            << ", B: " << static_cast<int>(blue) << std::endl;
+            << ", B: " << static_cast<int>(blue) << std::endl;*/
 
-        // Loops through all of the squares
-        for (int i = 0; i < SideLength[0] * SideLength[1]; i++) {
-            CurrentEndColor = GetPixel(Context, EndPos.x, EndPos.y);
+        CurrentEndColor = GetPixel(Context, EndPos.x, EndPos.y);
 
-            if (i % SideLength[0] == 0 && i != 0 && i != 1) {
-                CursorPos.y += SquareLength;
-                CursorPos.x = FirstBoxPos.x;
+        if (CurrentEndColor == EndColor) {
+            std::cout << "Game Over Detected. Resetting... \n";
+
+            PressKey(VK_SPACE);
+            TakenPos.clear();
+
+            int timeout = 0;
+            while (GetPixel(Context, EndPos.x, EndPos.y) == EndColor && timeout < 20) {
+                Sleep(50);
+                timeout++;
             }
 
-            CursorPos.x += SquareLength;
+            Sleep(500);
 
-            SetCursorPos(CursorPos.x, CursorPos.y);
-            Click();
+            SetCursorPos(FirstBoxPos.x, FirstBoxPos.y);
+            LeftClick();
 
-            if (CurrentEndColor == EndColor) {
-                std::cout << "Color \n";
-                PressKey(VK_SPACE);
-                i = 0;
-                CursorPos = FirstBoxPos;
+            continue;
+        }
 
-                Sleep(500);
+        std::vector<int> TeleportPos(2);
+        bool foundNewSpot = false;
 
-                SetCursorPos(CursorPos.x, CursorPos.y);
-                Click();
-            }
+        for (int attempts = 0; attempts < 100; attempts++) {
+            int RandX = RandomNumGen::GenerateInt(0, SideLength[0] - 1);
+            int RandY = RandomNumGen::GenerateInt(0, SideLength[1] - 1);
+            TeleportPos = { FirstBoxPos.x + (RandX * SquareLength), FirstBoxPos.y + (RandY * SquareLength) };
 
-            if (GetAsyncKeyState(VK_ESCAPE)) {
-                std::cout << "Spacebar pressed. Exiting." << std::endl;
-                bQuit = true;
+            if (TakenPos.find(TeleportPos) == TakenPos.end()) {
+                foundNewSpot = true;
                 break;
             }
-             
-            Sleep(100);
         }
-          
-        bQuit = true;
+
+        if (foundNewSpot) {
+            if (GetPixel(Context, EndPos.x, EndPos.y) != EndColor) {
+                TakenPos.insert(TeleportPos);
+                SetCursorPos(TeleportPos[0], TeleportPos[1]);
+
+                int rand = RandomNumGen::GenerateInt(1, 2);
+                if (rand == 1) LeftClick();
+                else RightClick();
+            }
+        }
+
+        Sleep(200);
           
         if (bQuit) break;
     }    
@@ -107,7 +126,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 }
 
 /////////////// Function Definitions ///////////////
-void Click() {
+void LeftClick() {
     INPUT inputs[2] = {};
 
     inputs[0].type = INPUT_MOUSE;
@@ -115,6 +134,18 @@ void Click() {
 
     inputs[1].type = INPUT_MOUSE;
     inputs[1].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+
+    SendInput(2, inputs, sizeof(INPUT));
+}
+
+void RightClick() {
+    INPUT inputs[2] = {};
+
+    inputs[0].type = INPUT_MOUSE;
+    inputs[0].mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
+
+    inputs[1].type = INPUT_MOUSE;
+    inputs[1].mi.dwFlags = MOUSEEVENTF_RIGHTUP;
 
     SendInput(2, inputs, sizeof(INPUT));
 }

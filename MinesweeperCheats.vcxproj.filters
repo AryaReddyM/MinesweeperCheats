@@ -22,4 +22,9 @@
   <ItemGroup>
     <None Include="MinesweeperCheats.slnx" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="RandomNumGen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
